@@ -1,7 +1,9 @@
 package com.example.jpa.notice.controller;
 
 import com.example.jpa.notice.entity.Notice;
+import com.example.jpa.notice.exception.AlreadyDeletedException;
 import com.example.jpa.notice.exception.NoticeNotFoundException;
+import com.example.jpa.notice.model.NoticeDeleteInput;
 import com.example.jpa.notice.model.NoticeInput;
 import com.example.jpa.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -176,5 +179,58 @@ public class ApiNoticeController {
 
         notice.setHits(notice.getHits() + 1);
         noticeRepository.save(notice);
+    }
+
+//    @DeleteMapping("/api/notice/{id}")
+//    public void deleteNotice(@PathVariable Long id) {
+//        Optional<Notice> notice = noticeRepository.findById(id);
+//        if (notice.isPresent()) {
+//            noticeRepository.delete(notice.get());
+//        }
+//    }
+
+//    @DeleteMapping("/api/notice/{id}")
+//    public void deleteNotice(@PathVariable Long id) {
+//        Notice notice = noticeRepository.findById(id)
+//                .orElseThrow(() -> new NoticeNotFoundException("공지사항 글이 존재하지 않습니다."));
+//
+//        noticeRepository.delete(notice);
+//    }
+
+    @ExceptionHandler(AlreadyDeletedException.class)
+    public ResponseEntity<String> handlerAlreadyDeletedException(AlreadyDeletedException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/api/notice/{id}")
+    public void deleteNotice(@PathVariable Long id) {
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new NoticeNotFoundException("공지사항 글이 존재하지 않습니다."));
+
+        if (notice.isDeleted()) {
+            throw new AlreadyDeletedException("이미 삭제된 글입니다.");
+        }
+
+        notice.setDeleted(true);
+        notice.setDeletedDate(LocalDateTime.now());
+        noticeRepository.save(notice);
+    }
+
+    @DeleteMapping("/api/notice")
+    public void deleteNoticeList(@RequestBody NoticeDeleteInput noticeDeleteInput) {
+        List<Notice> noticeList = noticeRepository.findByIdIn(noticeDeleteInput.getIdList())
+                .orElseThrow(() -> new NoticeNotFoundException("공지사항의 글이 존재하지 않습니다."));
+
+        noticeList.forEach(e -> {
+            e.setDeleted(true);
+            e.setDeletedDate(LocalDateTime.now());
+        });
+
+        noticeRepository.saveAll(noticeList);
+    }
+
+    @DeleteMapping("/api/notice/all")
+    public void deleteAll() {
+        noticeRepository.deleteAll();
     }
 }
