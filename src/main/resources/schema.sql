@@ -1,4 +1,16 @@
+drop table if exists user;
 drop table if exists notice;
+
+create table user
+(
+    id          bigint auto_increment primary key,
+    email       varchar(255),
+    user_name   varchar(255),
+    password    varchar(255),
+    phone       varchar(255),
+    reg_date    timestamp,
+    update_date timestamp
+);
 
 create table notice
 (
@@ -12,6 +24,8 @@ create table notice
     reg_date     timestamp,
     update_date  timestamp,
     deleted_date timestamp,
+    deleted      boolean,
 
-    deleted      boolean
+    user_id      bigint,
+    constraint FK_NOTICE_USER_ID foreign key (user_id) references user (id)
 );
