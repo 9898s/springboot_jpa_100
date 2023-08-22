@@ -1,5 +1,8 @@
 package com.example.jpa.user.controller;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.SignatureGenerationException;
 import com.example.jpa.notice.entity.Notice;
 import com.example.jpa.notice.entity.NoticeLike;
 import com.example.jpa.notice.model.NoticeReponse;
@@ -11,6 +14,8 @@ import com.example.jpa.user.entity.UserRepository;
 import com.example.jpa.user.exception.PassowrdNotMatchException;
 import com.example.jpa.user.exception.UserNotFoundException;
 import com.example.jpa.user.model.*;
+import com.example.jpa.util.JWTUtils;
+import com.example.jpa.util.PasswordUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,9 +25,12 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -243,5 +251,122 @@ public class ApiUserController {
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
 
         return noticeLikeRepository.findByUser(user);
+    }
+
+//    @PostMapping("/api/user/login")
+//    public ResponseEntity<?> createToken(@RequestBody @Valid UserLogin userLogin, Errors errors) {
+//        List<ResponseError> responseErrorList = new ArrayList<>();
+//        if (errors.hasErrors()) {
+//            errors.getAllErrors().forEach(e -> responseErrorList.add(ResponseError.of((FieldError) e)));
+//            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
+//        }
+//
+//        User user = userRepository.findByEmail(userLogin.getEmail())
+//                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+//
+//        if (!PasswordUtils.equalsPassword(userLogin.getPassword(), user.getPassword())) {
+//            throw new PassowrdNotMatchException("비밀번호가 일치하지 않습니다.");
+//        }
+//        return ResponseEntity.ok().build();
+//    }
+
+//    @PostMapping("/api/user/login")
+//    public ResponseEntity<?> createToken(@RequestBody @Valid UserLogin userLogin, Errors errors) {
+//        List<ResponseError> responseErrorList = new ArrayList<>();
+//        if (errors.hasErrors()) {
+//            errors.getAllErrors().forEach(e -> responseErrorList.add(ResponseError.of((FieldError) e)));
+//            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
+//        }
+//
+//        User user = userRepository.findByEmail(userLogin.getEmail())
+//                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+//
+//        if (!PasswordUtils.equalsPassword(userLogin.getPassword(), user.getPassword())) {
+//            throw new PassowrdNotMatchException("비밀번호가 일치하지 않습니다.");
+//        }
+//
+//        String token = JWT.create()
+//                .withExpiresAt(new Date())
+//                .withClaim("user_id", user.getId())
+//                .withSubject(user.getUserName())
+//                .withIssuer(user.getEmail())
+//                .sign(Algorithm.HMAC512("zerobase".getBytes()));
+//
+//        return ResponseEntity.ok().body(UserLoginToken.builder()
+//                .token(token)
+//                .build());
+//    }
+
+    @PostMapping("/api/user/login")
+    public ResponseEntity<?> createToken(@RequestBody @Valid UserLogin userLogin, Errors errors) {
+        List<ResponseError> responseErrorList = new ArrayList<>();
+        if (errors.hasErrors()) {
+            errors.getAllErrors().forEach(e -> responseErrorList.add(ResponseError.of((FieldError) e)));
+            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userRepository.findByEmail(userLogin.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+
+        if (!PasswordUtils.equalsPassword(userLogin.getPassword(), user.getPassword())) {
+            throw new PassowrdNotMatchException("비밀번호가 일치하지 않습니다.");
+        }
+
+        LocalDateTime expiredDateTime = LocalDateTime.now().plusMonths(1);
+        Date expiredDate = Timestamp.valueOf(expiredDateTime);
+
+        String token = JWT.create()
+                .withExpiresAt(expiredDate)
+                .withClaim("user_id", user.getId())
+                .withSubject(user.getUserName())
+                .withIssuer(user.getEmail())
+                .sign(Algorithm.HMAC512("zerobase".getBytes()));
+
+        return ResponseEntity.ok().body(UserLoginToken.builder()
+                .token(token)
+                .build());
+    }
+
+    @PatchMapping("/api/user/login")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+        String token = request.getHeader("Z-TOKEN");
+        String email = "";
+
+        try {
+            email = JWT.require(Algorithm.HMAC512("zerobase".getBytes()))
+                    .build()
+                    .verify(token)
+                    .getIssuer();
+        } catch (SignatureGenerationException e) {
+            throw new PassowrdNotMatchException("비밀번호가 일치하지 않습니다.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+
+        LocalDateTime expiredDateTime = LocalDateTime.now().plusMonths(1);
+        Date expiredDate = Timestamp.valueOf(expiredDateTime);
+
+        String newToken = JWT.create()
+                .withExpiresAt(expiredDate)
+                .withClaim("user_id", user.getId())
+                .withSubject(user.getUserName())
+                .withIssuer(user.getEmail())
+                .sign(Algorithm.HMAC512("zerobase".getBytes()));
+
+        return ResponseEntity.ok().body(UserLoginToken.builder()
+                .token(newToken)
+                .build());
+    }
+
+    @DeleteMapping("/api/user/login")
+    public ResponseEntity<?> removeToken(@RequestHeader("Z-TOKEN") String token) {
+        String email = "";
+        try {
+            email = JWTUtils.getIssuer(token);
+        } catch (SignatureGenerationException e) {
+            return new ResponseEntity<>("토큰 정보가 정확하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok().build();
     }
 }
