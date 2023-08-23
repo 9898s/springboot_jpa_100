@@ -9,7 +9,9 @@ create table user
     password    varchar(255),
     phone       varchar(255),
     reg_date    timestamp,
-    update_date timestamp
+    update_date timestamp,
+    status      integer,
+    lock_yn     boolean
 );
 
 create table notice
@@ -38,3 +40,13 @@ create table notice_like
     constraint FK_NOTICE_LIKE_NOTICE_ID foreign key (notice_id) references notice (id),
     constraint FK_NOTICE_LIKE_USER_ID foreign key (user_id) references user (id)
 );
+
+create table user_login_history
+(
+    id         bigint auto_increment primary key,
+    user_id    bigint,
+    email      varchar(255),
+    user_name  varchar(255),
+    login_date timestamp,
+    ip_addr    varchar(255)
+)

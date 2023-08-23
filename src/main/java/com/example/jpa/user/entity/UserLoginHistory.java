@@ -1,6 +1,5 @@
 package com.example.jpa.user.entity;
 
-import com.example.jpa.user.model.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,10 +13,13 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @Entity
-public class User {
+public class UserLoginHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
+
+    @Column
+    private long userId;
 
     @Column
     private String email;
@@ -26,20 +28,8 @@ public class User {
     private String userName;
 
     @Column
-    private String password;
+    private LocalDateTime loginDate;
 
     @Column
-    private String phone;
-
-    @Column
-    private LocalDateTime regDate;
-
-    @Column
-    private LocalDateTime updateDate;
-
-    @Column
-    private UserStatus status;
-
-    @Column
-    private boolean lockYn;
+    private String ipAddr;
 }

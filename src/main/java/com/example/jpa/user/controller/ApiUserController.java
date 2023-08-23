@@ -11,6 +11,7 @@ import com.example.jpa.notice.repository.NoticeLikeRepository;
 import com.example.jpa.notice.repository.NoticeRepository;
 import com.example.jpa.user.entity.User;
 import com.example.jpa.user.entity.UserRepository;
+import com.example.jpa.user.exception.ExistsEmailException;
 import com.example.jpa.user.exception.PassowrdNotMatchException;
 import com.example.jpa.user.exception.UserNotFoundException;
 import com.example.jpa.user.model.*;
