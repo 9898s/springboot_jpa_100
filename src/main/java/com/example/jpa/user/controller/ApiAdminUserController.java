@@ -5,9 +5,8 @@ import com.example.jpa.user.entity.User;
 import com.example.jpa.user.entity.UserLoginHistory;
 import com.example.jpa.user.entity.UserLoginHistoryRepository;
 import com.example.jpa.user.entity.UserRepository;
-import com.example.jpa.user.model.ResponseMessage;
-import com.example.jpa.user.model.UserSearch;
-import com.example.jpa.user.model.UserStatusInput;
+import com.example.jpa.user.model.*;
+import com.example.jpa.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,8 @@ public class ApiAdminUserController {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final UserLoginHistoryRepository userLoginHistoryRepository;
+
+    private final UserService userService;
 
 //    @GetMapping("/api/admin/user")
 //    public ResponseMessage userList() {
@@ -123,5 +124,36 @@ public class ApiAdminUserController {
         userRepository.save(user);
 
         return ResponseEntity.ok().body(ResponseMessage.success());
+    }
+
+    @GetMapping("/api/admin/user/status/count")
+    public ResponseEntity<?> userStatusCount() {
+        UserSummary userSummary = userService.getUserStatusCount();
+
+        return ResponseEntity.ok().body(ResponseMessage.success(userSummary));
+    }
+
+    @GetMapping("/api/admin/user/today")
+    public ResponseEntity<?> todayUser() {
+        List<User> users = userService.getTodayUsers();
+        return ResponseEntity.ok().body(ResponseMessage.success(users));
+    }
+
+//    @GetMapping("/api/admin/user/notice/count")
+//    public ResponseEntity<?> userNoticeCount() {
+//        List<UserNoticeCount> userNoticeCountList = userService.getUserNoticeCount();
+//        return ResponseEntity.ok().body(ResponseMessage.success(userNoticeCountList));
+//    }
+
+    @GetMapping("/api/admin/user/log/count")
+    public ResponseEntity<?> userNoticeCountAndLikeCount() {
+        List<UserLogCount> userLogCounts = userService.getUserLogCount();
+        return ResponseEntity.ok().body(ResponseMessage.success(userLogCounts));
+    }
+
+    @GetMapping("/api/admin/user/like/best")
+    public ResponseEntity<?> bestLikeCount() {
+        List<UserLogCount> userLogCounts = userService.getUserLikeBest();
+        return ResponseEntity.ok().body(ResponseMessage.success(userLogCounts));
     }
 }
