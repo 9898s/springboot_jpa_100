@@ -6,6 +6,10 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 @UtilityClass
 public class PasswordUtils {
     public static boolean equalsPassword(String password, String encryptPassword) {
-        return BCrypt.checkpw(password, encryptPassword);
+        try {
+            return BCrypt.checkpw(password, encryptPassword);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }
