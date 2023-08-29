@@ -1,4 +1,4 @@
-package com.example.jpa.user.entity;
+package com.example.jpa.user.repository;
 
 import com.example.jpa.user.model.UserLogCount;
 import com.example.jpa.user.model.UserNoticeCount;

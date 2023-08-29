@@ -1,5 +1,6 @@
 package com.example.jpa.user.service;
 
+import com.example.jpa.board.model.ServiceResult;
 import com.example.jpa.user.entity.User;
 import com.example.jpa.user.model.UserLogCount;
 import com.example.jpa.user.model.UserNoticeCount;
@@ -20,4 +21,8 @@ public interface UserService {
      * 좋아요를 가장 많이 한 사용자 목록(10개)을 리턴하는 API를 작성해 보세요.
      */
     List<UserLogCount> getUserLikeBest();
+
+    ServiceResult addInterestUser(String email, Long id);
+
+    ServiceResult removeInterestUser(String email, Long interestId);
 }

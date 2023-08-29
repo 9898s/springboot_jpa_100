@@ -25,3 +25,8 @@ values ('게시판1', now(), 1)
 insert into board (board_type_id, user_id, top_yn, title, contents, reg_date)
 values (1, 1, 0, '게시글1', '게시글내용1', now())
      , (1, 1, 0, '게시글2', '게시글내용2', now());
+
+insert into board_comment(comments, reg_date, board_id, user_id)
+values ('게시글 1번에 대한 댓글1', now(), 1, 1)
+     , ('게시글 1번에 대한 댓글2', now(), 1, 1)
+     , ('게시글 1번에 대한 댓글2', now(), 2, 1);

@@ -114,3 +114,61 @@ create table board_bad_report
     reg_date       timestamp
 );
 
+create table board_scrap
+(
+    id             bigint auto_increment primary key,
+    user_id        bigint,
+    board_id       bigint,
+    board_type_id  bigint,
+    board_user_id  bigint,
+    board_title    varchar(255),
+    board_contents varchar(255),
+    board_reg_date timestamp,
+    reg_date       timestamp,
+    constraint FK_BOARD_SCRAP_USER_ID foreign key (user_id) references user (id)
+);
+
+create table board_bookmark
+(
+    id            bigint auto_increment primary key,
+    user_id       bigint,
+    board_id      bigint,
+    board_type_id bigint,
+    board_title   varchar(255),
+    board_url     varchar(255),
+    reg_date      timestamp,
+    constraint FK_BOARD_BOOKMARK_USER_ID foreign key (user_id) references user (id)
+);
+
+create table user_interest
+(
+    id               bigint auto_increment primary key,
+    user_id          bigint,
+    interest_user_id bigint,
+    reg_date         timestamp,
+
+    constraint FK_USER_INTEREST_USER_ID foreign key (user_id) references user (id),
+    constraint FK_USER_INTEREST_INTEREST_USER_ID foreign key (interest_user_id) references user (id)
+);
+
+create table board_comment
+(
+    id       bigint auto_increment primary key,
+    user_id  bigint,
+    board_id bigint,
+    comments varchar(255),
+    reg_date timestamp,
+
+    constraint FK_BOARD_COMMENT_USER_ID foreign key (user_id) references user (id),
+    constraint FK_BOARD_COMMENT_BOARD_ID foreign key (board_id) references board (id)
+);
+
+create table user_point
+(
+    id              bigint auto_increment primary key,
+    user_id         bigint,
+    user_point_type varchar(255),
+    point           integer,
+
+    constraint FK_USER_POINT_USER_ID foreign key (user_id) references user (id)
+);
