@@ -172,3 +172,10 @@ create table user_point
 
     constraint FK_USER_POINT_USER_ID foreign key (user_id) references user (id)
 );
+
+create table logs
+(
+    id       bigint auto_increment primary key,
+    text     clob,
+    reg_date timestamp
+);
