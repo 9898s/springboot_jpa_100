@@ -171,4 +171,18 @@ public class ApiBoardController {
         }
         return ResponseResult.success(board);
     }
+
+    @GetMapping("/api/board")
+    public ResponseEntity<?> list() {
+        List<Board> list = boardService.list();
+        return ResponseResult.success(list);
+    }
+
+    @PostMapping("/api/board")
+    public ResponseEntity<?> add(@RequestHeader("Z-TOKEN") String token, @RequestBody BoardInput boardInput) {
+        String email = JWTUtils.getIssuer(token);
+
+        ServiceResult result = boardService.add(email, boardInput);
+        return ResponseResult.result(result);
+    }
 }
