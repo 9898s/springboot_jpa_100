@@ -1,6 +1,6 @@
 insert into user (email, password, phone, reg_date, update_date, user_name, status, lock_yn, password_reset_yn)
-values ('test1@test.com', '1111', '010-1111-1111', '2023-08-23 00:00:00.000000', null, '홍길동', 1, 0, 0)
-     , ('test2@test.com', '2222', '010-2222-2222', '2023-08-23 00:00:00.000000', null, '손흥민', 1, 0, 0)
+values ('sueh9898@naver.com', '1111', '010-1111-1111', '2023-08-23 00:00:00.000000', null, '홍길동', 1, 0, 0)
+     , ('suhwan@kakao.com', '2222', '010-2222-2222', '2023-08-23 00:00:00.000000', null, '손흥민', 1, 0, 0)
      , ('test3@test.com', '3333', '010-3333-3333', now(), null, '봉준호', 1, 0, 0)
      , ('test4@test.com', '4444', '010-4444-4444', now(), null, '박재범', 2, 0, 0);
 
@@ -48,6 +48,11 @@ values ('USER_RESET_PASSWORD',
        ('BOARD_REPLY',
         '{USER_NAME}님이 글에 답변을 하였습니다.',
         '<div><p>제목: {BOARD_TITLE}</p><p>내용</p><div>{BOARD_CONTENTS}</div><p>답변</p><div>{BOARD_REPLY_CONTENTS}</div></div>',
+        'sueh9898@gmail.com', '관리자', now()),
+
+       ('USER_SERVICE_NOTICE',
+        '{USER_NAME}님 안녕하세요',
+        '<div><p>개인정보 이용 내역 안내</p><p>서비스를 잘 이용하고 계십니다.</p></div>',
         'sueh9898@gmail.com', '관리자', now());
 
 insert into logs(text, reg_date)

@@ -198,4 +198,20 @@ public class UserServiceImpl implements UserService {
         });
         return ServiceResult.success();
     }
+
+    @Override
+    public void sendServiceNotice() {
+        Optional<MailTemplate> optionalMailTemplate = mailTemplateRepository.findByTemplateId("USER_SERVICE_NOTICE");
+        optionalMailTemplate.ifPresent(e -> {
+            String fromEmail = e.getSendEmail();
+            String fromUserName = e.getSendUserName();
+            String contents = e.getContents();
+
+            userRepository.findAll().stream().forEach(u -> {
+
+                String title = e.getTitle().replaceAll("\\{USER_NAME\\}", u.getUserName());
+                mailComponent.send(fromEmail, fromUserName, u.getEmail(), u.getUserName(), title, contents);
+            });
+        });
+    }
 }
