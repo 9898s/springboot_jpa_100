@@ -49,3 +49,10 @@ values ('USER_RESET_PASSWORD',
         '{USER_NAME}님이 글에 답변을 하였습니다.',
         '<div><p>제목: {BOARD_TITLE}</p><p>내용</p><div>{BOARD_CONTENTS}</div><p>답변</p><div>{BOARD_REPLY_CONTENTS}</div></div>',
         'sueh9898@gmail.com', '관리자', now());
+
+insert into logs(text, reg_date)
+values ('로그1', now()),
+       ('로그2', now()),
+       ('로그3', now()),
+       ('로그4', now()),
+       ('로그5', now());

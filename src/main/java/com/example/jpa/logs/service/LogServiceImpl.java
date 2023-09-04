@@ -19,4 +19,9 @@ public class LogServiceImpl implements LogService {
                 .regDate(LocalDateTime.now())
                 .build());
     }
+
+    @Override
+    public void deleteLog() {
+        logsRepository.deleteAll();
+    }
 }
