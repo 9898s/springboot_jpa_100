@@ -1,8 +1,10 @@
 package com.example.jpa.user.service;
 
 import com.example.jpa.board.model.ServiceResult;
+import com.example.jpa.common.MailComponent;
 import com.example.jpa.common.exception.BizException;
-import com.example.jpa.logs.service.LogService;
+import com.example.jpa.mail.MailTemplateRepository;
+import com.example.jpa.mail.entity.MailTemplate;
 import com.example.jpa.user.entity.User;
 import com.example.jpa.user.entity.UserInterest;
 import com.example.jpa.user.model.*;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -23,7 +26,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserCustomRepository userCustomRepository;
     private final UserInterestRepository userInterestRepository;
-    private final LogService logService;
+    private final MailComponent mailComponent;
+    private final MailTemplateRepository mailTemplateRepository;
 
     @Override
     public UserSummary getUserStatusCount() {
@@ -129,5 +133,69 @@ public class UserServiceImpl implements UserService {
             throw new BizException("일치하는 정보가 없습니다.");
         }
         return user;
+    }
+
+    @Override
+    public ServiceResult addUser(UserInput userInput) {
+        Optional<User> optionalUser = userRepository.findByEmail(userInput.getEmail());
+        if (optionalUser.isPresent()) {
+            throw new BizException("이미 가입된 이메일입니다.");
+        }
+
+        String encryptPassword = PasswordUtils.encryptedPassword(userInput.getPassword());
+
+        User user = User.builder()
+                .email(userInput.getEmail())
+                .userName(userInput.getUserName())
+                .regDate(LocalDateTime.now())
+                .password(encryptPassword)
+                .phone(userInput.getPhone())
+                .status(UserStatus.Using)
+                .build();
+        userRepository.save(user);
+
+        // 이메일 전송
+        String fromEmail = "sueh9898@gmail.com";
+        String fromName = "관리자";
+        String toEmail = user.getEmail();
+        String toName = user.getUserName();
+
+        String title = "회원가입을 축하드립니다.";
+        String contents = "회원가입을 축하드립니다.";
+
+        mailComponent.send(fromEmail, fromName, toEmail, toName, title, contents);
+
+        return ServiceResult.success();
+    }
+
+    @Override
+    public ServiceResult resetPassword(UserPasswordResetInput userInput) {
+        Optional<User> optionalUser = userRepository.findByEmailAndUserName(userInput.getEmail(), userInput.getUserName());
+        if (!optionalUser.isPresent()) {
+            throw new BizException("회원 정보가 존재하지 않습니다.");
+        }
+
+        User user = optionalUser.get();
+
+        String passwordResetKey = UUID.randomUUID().toString();
+
+        user.setPasswordResetYn(true);
+        user.setPasswordResetKey(passwordResetKey);
+        userRepository.save(user);
+
+        String serverUrl = "http://localhost:8080";
+
+        Optional<MailTemplate> optionalMailTemplate = mailTemplateRepository.findByTemplateId("USER_RESET_PASSWORD");
+        optionalMailTemplate.ifPresent(e -> {
+            String fromEmail = e.getSendEmail();
+            String fromUserName = e.getSendUserName();
+            String title = e.getTitle().replaceAll("\\{USER_NAME\\}", user.getUserName());
+            String contents = e.getContents().replaceAll("\\{USER_NAME\\}", user.getUserName())
+                    .replaceAll("\\{SERVER_URL\\}", serverUrl)
+                    .replaceAll("\\{RESET_PASSWORD_KEY\\}", passwordResetKey);
+
+            mailComponent.send(fromEmail, fromUserName, user.getEmail(), user.getUserName(), title, contents);
+        });
+        return ServiceResult.success();
     }
 }

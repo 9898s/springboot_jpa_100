@@ -3,7 +3,10 @@ package com.example.jpa.board.service;
 import com.example.jpa.board.entity.*;
 import com.example.jpa.board.model.*;
 import com.example.jpa.board.repository.*;
+import com.example.jpa.common.MailComponent;
 import com.example.jpa.common.exception.BizException;
+import com.example.jpa.mail.MailTemplateRepository;
+import com.example.jpa.mail.entity.MailTemplate;
 import com.example.jpa.user.entity.User;
 import com.example.jpa.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,8 @@ public class BoardServiceImpl implements BoardService {
     private final BoardBookmarkRepository boardBookmarkRepository;
     private final BoardCommentRepository boardCommentRepository;
     private final UserRepository userRepository;
+    private final MailTemplateRepository mailTemplateRepository;
+    private final MailComponent mailComponent;
 
     @Override
     public ServiceResult addBoard(BoardTypeInput boardTypeInput) {
@@ -431,6 +436,44 @@ public class BoardServiceImpl implements BoardService {
 
         boardRepository.save(board);
 
+        // 메일 전송 로직
+        Optional<MailTemplate> optionalMailTemplate = mailTemplateRepository.findByTemplateId("BOARD_ADD");
+        optionalMailTemplate.ifPresent(e -> {
+            String fromEmail = e.getSendEmail();
+            String fromUserName = e.getSendUserName();
+            String title = e.getTitle().replaceAll("\\{USER_NAME\\}", user.getUserName());
+            String contents = e.getContents().replaceAll("\\{BOARD_TITLE\\}", board.getTitle())
+                    .replaceAll("\\{BOARD_CONTENTS\\}", board.getContents());
+
+            mailComponent.send(fromEmail, fromUserName, user.getEmail(), user.getUserName(), title, contents);
+        });
+
+        return ServiceResult.success();
+    }
+
+    @Override
+    public ServiceResult replyBoard(Long id, BoardReplyInput boardReplyInput) {
+        Optional<Board> optionalBoard = boardRepository.findById(id);
+        if (!optionalBoard.isPresent()) {
+            throw new BizException("게시글이 존재하지 않습니다.");
+        }
+        Board board = optionalBoard.get();
+
+        board.setReplyContents(boardReplyInput.getReplyContents());
+        boardRepository.save(board);
+
+        // 메일 전송
+        Optional<MailTemplate> optionalMailTemplate = mailTemplateRepository.findByTemplateId("BOARD_REPLY");
+        optionalMailTemplate.ifPresent(e -> {
+            String fromEmail = e.getSendEmail();
+            String fromUserName = e.getSendUserName();
+            String title = e.getTitle().replaceAll("\\{USER_NAME\\}", board.getUser().getUserName());
+            String contents = e.getContents().replaceAll("\\{BOARD_TITLE\\}", board.getTitle())
+                    .replaceAll("\\{BOARD_CONTENTS\\}", board.getContents())
+                    .replaceAll("\\{BOARD_REPLY_CONTENTS\\}", board.getReplyContents());
+
+            mailComponent.send(fromEmail, fromUserName, board.getUser().getEmail(), board.getUser().getUserName(), title, contents);
+        });
         return ServiceResult.success();
     }
 }

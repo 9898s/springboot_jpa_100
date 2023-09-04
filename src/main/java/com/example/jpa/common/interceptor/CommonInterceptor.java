@@ -33,6 +33,8 @@ public class CommonInterceptor implements HandlerInterceptor {
             email = JWTUtils.getIssuer(token);
         } catch (JWTVerificationException e) {
             return false;
+        } catch (Exception e) {
+            return false;
         }
         return true;
     }

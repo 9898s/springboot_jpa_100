@@ -3,15 +3,17 @@ drop table if exists notice;
 
 create table user
 (
-    id          bigint auto_increment primary key,
-    email       varchar(255),
-    user_name   varchar(255),
-    password    varchar(255),
-    phone       varchar(255),
-    reg_date    timestamp,
-    update_date timestamp,
-    status      integer,
-    lock_yn     boolean
+    id                 bigint auto_increment primary key,
+    email              varchar(255),
+    user_name          varchar(255),
+    password           varchar(255),
+    phone              varchar(255),
+    reg_date           timestamp,
+    update_date        timestamp,
+    status             integer,
+    lock_yn            boolean,
+    password_reset_yn  boolean,
+    password_reset_key varchar(255)
 );
 
 create table notice
@@ -65,13 +67,15 @@ create table board
 (
     id                 bigint auto_increment primary key,
     title              varchar(255),
-    contents           varchar(255),
+    contents           clob,
     reg_date           timestamp,
     board_type_id      bigint,
     user_id            bigint,
     top_yn             boolean,
     publish_start_date date,
     publish_end_date   date,
+
+    replyContents      clob,
 
     constraint FK_BOARD_BOARD_TYPE_ID foreign key (board_type_id) references board_type (id),
     constraint FK_BOARD_USER_ID foreign key (user_id) references user (id)
@@ -179,3 +183,15 @@ create table logs
     text     clob,
     reg_date timestamp
 );
+
+create table mail_template
+(
+    id             bigint primary key auto_increment,
+    template_id    varchar(255),
+    title          varchar(255),
+    contents       varchar(255),
+    send_email     varchar(255),
+    send_user_name varchar(255),
+    reg_date       timestamp
+);
+
